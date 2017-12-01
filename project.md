@@ -7,19 +7,37 @@ Bonn, Germany.
 
 I have got the data direct from the site using the export tool.
 
-I'm from St.Petersburg, Russia, but live in Bonn last ten years. The map of St.Petersburg weights 944MB and it needs a dedicated server for this work. The osm map file of Bonn weights 230MB only and is precisely created. 
+I'm from St.Petersburg, Russia, but live in Bonn last ten years. The map of St.Petersburg weights 944MB and it is too big for this work. The osm map file of Bonn weights 230MB only and is precisely created. 
 Nevertheless, there is always something to improve.
+
+### Project
+
+I had set k=10 for the test run and got the csv files to import into the database. I chose the SQLite database and DB Browser for SQLite to interact with the database. The test import of nodes and ways passed without problems, but the slave tables rejected the data because of the constraints of the database's integrity (since k=10).
+Having evaluated the time of the validation task, I used a dedicated server to get validated csv files for import. Import to the database went errorfree.
+
+
+### Project files
+
+File | Size
+--- | ---
+bonn.db | 150MB
+bonn.osm | 231MB
+bonn.osm.rar | 18MB
+nodes.csv | 73MB
+nodes_tags.csv | 4,9MB
+ways.csv | 11MB
+ways_nodes.csv | 30MB
+ways_tags.csv | 23MB
 
 ### Data overview and statistics
 ```sql
 SELECT COUNT(id) AS sum_all_nodes FROM nodes;
 ```
-returns 929536 nodes (records in the table nodes)  
-
+--returns 929536 nodes (records in the table nodes)  
 ```sql
 SELECT COUNT(id) AS sum_all_ways FROM ways;
-```
-returns 179784 ways (records in the table ways)  
+``` 
+--returns 179784 ways (records in the table ways)  
 
 ```sql
 SELECT COUNT(DISTINCT uid) AS cnt_all_uid FROM
@@ -36,17 +54,6 @@ GROUP BY uid ORDER BY cc DESC LIMIT 131);
 returns 1084789 - number of records created by top 10% or 131 users. It is 98% of the all records.  
 
 
-### Project files
- ```
-150MB Bonn.db
-231MB bonn.osm
- 18MB bonn.rar
- 73MB nodes.csv
-4,9MB nodes_tags.csv
- 11MB ways.csv
- 30MB ways_nodes.csv
- 23MB ways_tags.csv
-```
 
 ### Problems found in the data
 
