@@ -90,21 +90,23 @@ UPDATE nodes_tags SET value=replace(value,'trasse','traße')
 WHERE key ='street' AND value LIKE '%strasse';
 ```
 
+### Additional Suggestions
+
+I found several interesting things in the data.
 
 There are only 8 charging stations with capacity 12 for electric cars in the city:
 ```
 SELECT * FROM nodes_tags WHERE id in (SELECT id FROM nodes_tags WHERE key ='amenity'
 AND value='charging_station');
 ```
-  
 
 This sql commando counts 1768 records and gets 402 unique references to wikidata. The most popular reference  
 with the occurence 95 or 0.5% is the Q2492 about Konrad Adenauer, the former Federal Chancellor of Germany.
 ```
 SELECT count(*) AS cc, value FROM ways_tags WHERE key='etymology:wikidata'
-GROP BY value ORDER BY cc DESC;
+GROUP BY value ORDER BY cc DESC;
 ```
-The commando gets 28 unique postcodes:
+This commando gets 28 unique postcodes:
 ```
 SELECT tags.value, COUNT(*) as count FROM
 (SELECT * FROM nodes_tags UNION ALL
@@ -116,3 +118,5 @@ Institute Center Schloss Birlinghoven - a german informatic research center. It 
 in Germany to become an own postcode but it is only one in Openstreet for this big area  
 and it is an IT research company.
 
+### Conclusion
+It is obvious than the OpenStreetMap is not exhaustive and have small inaccuracy but is usefull, open and free too use. It is usefull not only as map, but also as a database. E.g. I can find opening hours of my hairdresser with one shot query -)
