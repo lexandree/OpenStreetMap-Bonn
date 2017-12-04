@@ -60,8 +60,7 @@ GROUP BY uid ORDER BY cc DESC LIMIT 131);
 
 - Misspelled street names
 
-There are two users who have a different german spelling interpretation.
-Users Ashley99 and wheelmap_visitor:  
+There are two users who has a different german spelling interpretation: Ashley99 and wheelmap_visitor.  
 ```sql
 SELECT nodes_tags.*, user
 FROM nodes_tags LEFT JOIN nodes ON nodes.id = nodes_tags.id
@@ -79,7 +78,7 @@ UPDATE nodes_tags SET value='Kölnstraße'
 WHERE key='street' AND type='addr' AND value LIKE 'kolnstr%';
 ```
 
-The user Ashley99 have '-straße' as '-strasse' misspelled:  
+The user Ashley99 has '-straße' as '-strasse' misspelled:  
 ```sql
 SELECT nodes_tags.*, user
 FROM nodes_tags LEFT JOIN nodes ON nodes.id = nodes_tags.id
@@ -127,7 +126,7 @@ and it is an IT research company.
 
 ### Conclusion
 Even if you do not take into account technical errors in mass automatic data import, language differences and nuances are a big source of errors. I'm sure I have found only a part of them.
-It is obvious that the OpenStreetMap is not exhaustive and have small inaccuracy but is usefull, open and free too use. It is usefull not only as map, but also as a database. E.g. I can find opening hours of my hairdresser with one shot query -)
+It is obvious that the OpenStreetMap is not exhaustive and has small inaccuracy but is usefull, open and free too use. It is usefull not only as map, but also as a database. E.g. I can find opening hours of my hairdresser with one shot query -)
 ```sql
 SELECT * FROM nodes_tags WHERE id IN (
 SELECT id FROM nodes_tags WHERE value LIKE '%by sam%');
