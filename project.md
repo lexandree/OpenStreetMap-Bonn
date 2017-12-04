@@ -126,8 +126,7 @@ in Germany to have an own postcode but it is only one case in the Openstreet for
 and it is an IT research company.
 
 ### Conclusion
-Even if you do not take into account technical errors in mass automatic data import, language differences and nuances are a big source of errors. I'm sure I found only a part of them.
-Language differences and nuances are a rich source of errors. I'm sure i have found only a part of them.
+Even if you do not take into account technical errors in mass automatic data import, language differences and nuances are a big source of errors. I'm sure I have found only a part of them.
 It is obvious that the OpenStreetMap is not exhaustive and have small inaccuracy but is usefull, open and free too use. It is usefull not only as map, but also as a database. E.g. I can find opening hours of my hairdresser with one shot query -)
 ```sql
 SELECT * FROM nodes_tags WHERE id IN (
