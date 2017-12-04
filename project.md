@@ -5,15 +5,14 @@
 
 Bonn, Germany.
 
-I had got the data direct from the site using the export tool.
-
-I'm from St.Petersburg, Russia, but live in Bonn last ten years. The map of St.Petersburg weights 944MB and it is too big for this work. The osm map file of Bonn weights 230MB only and was created precisely. 
+I have received the data direct from the site using the export tool.  
+My hometown is St.Petersburg, Russia, but the map of St.Petersburg weights 944MB and it is too big for this work. I have lived in Bonn last ten years and it is a better choice.  The osm map file of Bonn is 230MB only and was created precisely. 
 Nevertheless, there is always something to improve.
 
 ### Project
 
-I had set k=10 for the test run and got the csv files to import into the database. I chose the SQLite database and DB Browser for SQLite to interact with the database. The test import of nodes and ways passed without problems, but the slave tables rejected the data because of the constraints of the database's integrity (since k=10).
-Having evaluated the time of the validation task, I used a dedicated server to get validated csv files for import. Import to the database went errorfree.
+I have set k=10 (select every 10th record) for the test run and received the csv files to import into the database. I have chosen the SQLite database and DB Browser for SQLite to interact with the database. The test import of nodes and ways has passed without problems, but slave tables have rejected the data because of the constraints of the database's integrity (since k=10).
+Having evaluated the time of the validation task, I have used a dedicated server to get validated csv files for import. Import to the database has gone errorfree.
 
 
 ### Project files
@@ -66,10 +65,12 @@ SELECT nodes_tags.*, user
 FROM nodes_tags LEFT JOIN nodes ON nodes.id = nodes_tags.id
 WHERE key ='street' AND value LIKE 'kolnstr%';
 ```
+![](https://user-images.githubusercontent.com/33815535/33553053-795de7dc-d8f7-11e7-9e3c-3b20da4a4cb1.JPG)  
 - the false spelled tags are:  
   - **tag k="addr:street" v="Kolnstr"** 5 records  
-  - **v=kolnstrasse** 5 records  
-  - **v=kolnstr**  one record  
+  - **v=kolnstrasse** 4 records  
+  - **v=Kolnstrasse** 1 record  
+  - **v=kolnstr**  2 records  
 - the right version is **tag k="addr:street" v="Kölnstraße"**
 
 Set the right values:
@@ -92,7 +93,7 @@ UPDATE nodes_tags SET value=replace(value,'trasse','traße')
 WHERE key ='street' AND value LIKE '%strasse';
 ```
 
-### Additional Suggestions
+### Additional Observations
 
 I found several interesting things in the data.
 
@@ -103,13 +104,13 @@ AND value='charging_station');
 ```
 ![](https://user-images.githubusercontent.com/33815535/33530959-08f6b7b4-d887-11e7-9e7e-65567c9e41d1.JPG)
 
-This sql command counts 1768 records and gets 402 unique references to wikidata. The most popular reference  
-with the occurence 95 or 0.5% is the [Q2492](https://www.wikidata.org/wiki/Q2492) about Konrad Adenauer, the former Federal Chancellor of Germany.
+This sql command counts 1768 records and gets 402 unique references to wikidata:  
 ```sql
 SELECT count(*) AS cc, value FROM ways_tags WHERE key='etymology:wikidata'
 GROUP BY value ORDER BY cc DESC;
 ```
-![](https://user-images.githubusercontent.com/33815535/33530960-095572ae-d887-11e7-915d-6b0cb429111d.JPG)
+![](https://user-images.githubusercontent.com/33815535/33530960-095572ae-d887-11e7-915d-6b0cb429111d.JPG)  
+The most popular reference with the occurence 95 or 0.5% is the [Q2492](https://www.wikidata.org/wiki/Q2492) about Konrad Adenauer, the former Federal Chancellor of Germany.
 
 This command gets 28 unique postcodes:
 ```sql
