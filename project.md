@@ -5,9 +5,9 @@
 
 Bonn, Germany.
 
-I have got the data direct from the site using the export tool.
+I had got the data direct from the site using the export tool.
 
-I'm from St.Petersburg, Russia, but live in Bonn last ten years. The map of St.Petersburg weights 944MB and it is too big for this work. The osm map file of Bonn weights 230MB only and is precisely created. 
+I'm from St.Petersburg, Russia, but live in Bonn last ten years. The map of St.Petersburg weights 944MB and it is too big for this work. The osm map file of Bonn weights 230MB only and was created precisely. 
 Nevertheless, there is always something to improve.
 
 ### Project
@@ -44,7 +44,7 @@ SELECT COUNT(id) AS sum_all_ways FROM ways;
 SELECT COUNT(DISTINCT uid) AS cnt_all_uid FROM
 (SELECT uid FROM nodes UNION ALL SELECT uid FROM ways) AS all_users;
 ```
-returns 1309 - number of unique users and they created 1109320 records in both tables - **nodes** and **ways**.  
+--returns 1309 - number of unique users and they created 1109320 records in both tables - **nodes** and **ways**.  
 
 ```sql
 SELECT SUM(cc) FROM
@@ -52,7 +52,7 @@ SELECT SUM(cc) FROM
 (SELECT uid FROM nodes UNION ALL SELECT uid FROM ways) AS nodes_ways_users
 GROUP BY uid ORDER BY cc DESC LIMIT 131);
 ```
-returns 1084789 - number of records created by top 10% or 131 users. It is 98% of the all records.  
+--returns 1084789 - number of records created by top 10% or 131 users. It is 98% of the all records.  
 
 
 
@@ -60,32 +60,35 @@ returns 1084789 - number of records created by top 10% or 131 users. It is 98% o
 
 - Misspelled street names
 
-Two users founded they have different german spelling interpretation.  
+There are two users who have a different german spelling interpretation.
 Users Ashley99 and wheelmap_visitor:  
-```
+```sql
 SELECT nodes_tags.*, user
 FROM nodes_tags LEFT JOIN nodes ON nodes.id = nodes_tags.id
 WHERE key ='street' AND value LIKE 'kolnstr%';
 ```
-- false spelling is **tag k="addr:street" v="Kolnstr"** 5 records, **v=kolnstrasse** 5 records and one record with **v=kolnstr**  
-- a right version is **tag k="addr:street" v="Kölnstraße"**
+- the false spelled tags are:  
+  - **tag k="addr:street" v="Kolnstr"** 5 records  
+  - **v=kolnstrasse** 5 records  
+  - **v=kolnstr**  one record  
+- the right version is **tag k="addr:street" v="Kölnstraße"**
 
 Set the right values:
-```
+```sql
 UPDATE nodes_tags SET value='Kölnstraße'
 WHERE key='street' AND type='addr' AND value LIKE 'kolnstr%';
 ```
 
-Both users have '-straße' as '-strasse' misspelled:  
-```
+The user Ashley99 have '-straße' as '-strasse' misspelled:  
+```sql
 SELECT nodes_tags.*, user
 FROM nodes_tags LEFT JOIN nodes ON nodes.id = nodes_tags.id
 WHERE value LIKE '%strasse';
 ```
-- shows 7 records
+![](https://user-images.githubusercontent.com/33815535/33530962-099f8286-d887-11e7-83d3-74fa8e0b8edd.JPG)
 
 Set the right values:
-```
+```sql
 UPDATE nodes_tags SET value=replace(value,'trasse','traße')
 WHERE key ='street' AND value LIKE '%strasse';
 ```
@@ -94,29 +97,40 @@ WHERE key ='street' AND value LIKE '%strasse';
 
 I found several interesting things in the data.
 
-There are only 8 charging stations with capacity 12 for electric cars in the city:
-```
+There are only 8 charging stations for electric cars in the city with combined capacity of 12:
+```sql
 SELECT * FROM nodes_tags WHERE id in (SELECT id FROM nodes_tags WHERE key ='amenity'
 AND value='charging_station');
 ```
+![](https://user-images.githubusercontent.com/33815535/33530959-08f6b7b4-d887-11e7-9e7e-65567c9e41d1.JPG)
 
-This sql commando counts 1768 records and gets 402 unique references to wikidata. The most popular reference  
-with the occurence 95 or 0.5% is the Q2492 about Konrad Adenauer, the former Federal Chancellor of Germany.
-```
+This sql command counts 1768 records and gets 402 unique references to wikidata. The most popular reference  
+with the occurence 95 or 0.5% is the [Q2492](https://www.wikidata.org/wiki/Q2492) about Konrad Adenauer, the former Federal Chancellor of Germany.
+```sql
 SELECT count(*) AS cc, value FROM ways_tags WHERE key='etymology:wikidata'
 GROUP BY value ORDER BY cc DESC;
 ```
-This commando gets 28 unique postcodes:
-```
+![](https://user-images.githubusercontent.com/33815535/33530960-095572ae-d887-11e7-915d-6b0cb429111d.JPG)
+
+This command gets 28 unique postcodes:
+```sql
 SELECT tags.value, COUNT(*) as count FROM
 (SELECT * FROM nodes_tags UNION ALL
 SELECT * FROM ways_tags) tags WHERE tags.key='postcode'
 GROUP BY tags.value ORDER BY count ASC;
 ```
-6 records from nodes_tags with the postcode 53754 and type 'contact' reserved for  
-Institute Center Schloss Birlinghoven - a german informatic research center. It possible for big companies  
-in Germany to become an own postcode but it is only one in Openstreet for this big area  
+![](https://user-images.githubusercontent.com/33815535/33530961-0974f2dc-d887-11e7-9059-c34a344f62fe.JPG)  
+6 records from nodes_tags with the postcode 53754 and the type 'contact' are reserved for  
+Institute Center Schloss Birlinghoven - a german informatic research center. It is possible for big companies  
+in Germany to have an own postcode but it is only one case in the Openstreet for this big area  
 and it is an IT research company.
 
 ### Conclusion
-It is obvious than the OpenStreetMap is not exhaustive and have small inaccuracy but is usefull, open and free too use. It is usefull not only as map, but also as a database. E.g. I can find opening hours of my hairdresser with one shot query -)
+Even if you do not take into account technical errors in mass automatic data import, language differences and nuances are a big source of errors. I'm sure I found only a part of them.
+Language differences and nuances are a rich source of errors. I'm sure i have found only a part of them.
+It is obvious that the OpenStreetMap is not exhaustive and have small inaccuracy but is usefull, open and free too use. It is usefull not only as map, but also as a database. E.g. I can find opening hours of my hairdresser with one shot query -)
+```sql
+SELECT * FROM nodes_tags WHERE id IN (
+SELECT id FROM nodes_tags WHERE value LIKE '%by sam%');
+```
+![](https://user-images.githubusercontent.com/33815535/33530958-08a59bcc-d887-11e7-9e9f-4e6e2f20b800.JPG)
