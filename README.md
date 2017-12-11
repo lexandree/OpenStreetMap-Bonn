@@ -134,6 +134,9 @@ Here is an excerpt from the program. The Google API user key created on [this](h
 ```
 It was a surprise to me that well-known functions and libraries like soundex are not suitable for international use. The [metaphone](https://github.com/oubiwann/metaphone) library is well created and does not require a pre-processing of the whole phrase.
 
+Along with google I checked the possibility of verification using web scraping. The way provided by Google proves to be the most universal and fast, although it has a limited bandwidth of 50 requests per second and 2500 per day or for small money.
+
+
 
 ### Additional Observations
 
