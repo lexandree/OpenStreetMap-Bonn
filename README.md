@@ -92,6 +92,48 @@ Set the right values:
 UPDATE nodes_tags SET value=replace(value,'trasse','traße')
 WHERE key ='street' AND value LIKE '%strasse';
 ```
+After the first review I decided to perform a check with Google API reverse geocoding. Every node has a latitude/longitude and the Google returns an address of a nearest point of interest. Successful outcome, the street name is found, was in my case about 99.2%. All streets from OSM file and the returned names are saved to the JSON file as a dictionary:
+
+```python
+    {"Wilhelm-Levison-Strasse": "Wilhelm-Levison-Straße",
+    "Wolfstraße": "Wolfstraße",
+    "Wurzerstraße": "Wurzerstraße",
+    "kaiser-karl-ring": "Kaiser-Karl-Ring",   # misspelled
+    "Michaelplatz": "",                       # not found by Google
+    "kolnstr": "Kölnstraße",                  # misspelled, checked with doublemetaphone phonetic encoding algorithm
+    "kolnstrasse": "Kölnstraße",              # misspelled, checked with doublemetaphone phonetic encoding algorithm
+    "oxfordstrasse": "Oxfordstraße",          # misspelled, checked with doublemetaphone phonetic encoding algorithm
+    "schumannstrasse": "Schumannstraße"}      # misspelled, checked with doublemetaphone phonetic encoding algorithm
+```
+
+Here is an excerpt from the program. The Google API user key created on [this](https://developers.google.com/maps/documentation/geocoding/start?refresh=1#reverse) site. All work is done in the function ask_google():
+```python
+    #creating googlemaps client does not mean sending a request
+    gmaps = googlemaps.Client(key='abc123') #Google API user key
+
+    # Look up an address with reverse geocoding
+    reverse_geocode_result = gmaps.reverse_geocode((parent_node['lat'], parent_node['lon']))# e.g.((40.714224, -73.961452))
+    
+    # get_route seeks for tag 'route' in address component and returns a value for component['long_name']
+    google_street = get_route(reverse_geocode_result[i]['address_components'])
+  
+    #the street is found by google and is conform 
+    if street_tag['value'].lower().strip() == google_street.lower():
+        checked_routes[street_tag['value']] = google_street
+        return google_street
+        
+    #the street is misspelled but sounds conform, doublemetaphone+'S' is because shortening Strasse->Str
+    if doublemetaphone(street_tag['value'])[0] == doublemetaphone(google_street)[0] or \
+        doublemetaphone(street_tag['value'])[0]+'S' == doublemetaphone(google_street)[0]:
+        checked_routes[street_tag['value']] = google_street
+        return google_street
+
+    # the route not found near this point, this node is in OpenStreet only
+    checked_routes[street_tag['value']] = ''
+    return street_tag['value']
+```
+It was a surprise to me that well-known functions and libraries like soundex are not suitable for international use. The [metaphone](https://github.com/oubiwann/metaphone) library is well created and does not require a pre-processing of the whole phrase.
+
 
 ### Additional Observations
 
