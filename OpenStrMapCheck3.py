@@ -183,6 +183,56 @@ WAY_FIELDS = ['id', 'user', 'uid', 'version', 'changeset', 'timestamp']
 WAY_TAGS_FIELDS = ['id', 'key', 'value', 'type']
 WAY_NODES_FIELDS = ['id', 'node_id', 'position']
 
+import io
+import json
+import googlemaps
+from metaphone import doublemetaphone 
+checked_streets = {}
+
+def get_route(address_components):
+    #gets the street name from Googles address_components list
+    for component in address_components:
+        if 'route' in component['types']:
+            return component['long_name']
+
+def ask_google(parent_node, street_tag, checked_routes):
+    #
+    #check the first occurence of a street by its coordinate by Google
+    #with the Google Maps APIs Premium Plan every point can by checked, 
+    #without the Premium Plan you have only 2,500 free requests per day
+
+    # return existing value from dictionary without check. 
+    if street_tag['value'] in checked_routes and checked_routes[street_tag['value']]!='':
+        return checked_routes[street_tag['value']]
+
+    #creating googlemaps client does not mean sending a request
+    gmaps = googlemaps.Client(key='AIzaSyDpa_8tBdXJnCcBPFskbBI_gIcxLtW8cJY') #Google API user key
+
+    # Look up an address with reverse geocoding
+    reverse_geocode_result = gmaps.reverse_geocode((parent_node['lat'], parent_node['lon']))# e.g.((40.714224, -73.961452))
+    # Google returns more address_components
+    for address_components in reverse_geocode_result:
+        # seek first route in Google response
+        google_street = get_route(address_components['address_components'])
+        print(google_street)
+        # route not found near this point, check next address_components
+        if google_street == None: 
+            #print('{0} not found in {1}'.format(street_tag['value'], parent_node['id']))
+            continue
+        #the street is found by google and is conform 
+        if street_tag['value'].lower().strip() == google_street.lower():
+            checked_routes[street_tag['value']] = google_street
+            return google_street
+        #the street is misspelled but sounds conform, doublemetaphone+'S' is because shortening Strasse->Str
+        if doublemetaphone(street_tag['value'])[0] == doublemetaphone(google_street)[0] or \
+            doublemetaphone(street_tag['value'])[0]+'S' == doublemetaphone(google_street)[0]:
+            checked_routes[street_tag['value']] = google_street
+            return google_street
+    
+    # route not found near this point, this node in OpenStreet only
+    checked_routes[street_tag['value']] = ''
+    return street_tag['value']
+
 def shape_tag(subelement, parent_id):
     
     if LOWER_COLON.match(subelement.attrib.get('k')):
@@ -214,7 +264,10 @@ def shape_element(element, node_attr_fields=NODE_FIELDS, way_attr_fields=WAY_FIE
         for subelement in element.getiterator('tag'):
             if problem_chars.search(subelement.attrib.get('k')): 
                 continue
-            tag = shape_tag(subelement, element.attrib.get('id'))    
+            tag = shape_tag(subelement, element.attrib.get('id'))   
+            #check street names by Google
+            if (tag['key']=='street') and (tag['type']=='addr'):
+                tag['value'] = ask_google(node_attribs, tag, checked_streets)
             tags.append(tag) 
             
         return {'node': node_attribs, 'node_tags': tags}
@@ -310,4 +363,10 @@ if __name__ == '__main__':
     # Note: Validation is ~ 10X slower. For the project consider using a small
     # sample of the map when validating.
     process_map(OSM_IN_FILE, validate=True) # OSM_PATH OSM_OUT_FILE
-    
+    if len(checked_streets)>0:
+       # Write JSON file
+        with io.open('checked_streets.json', 'w', encoding='utf8') as outfile:
+            str_ = json.dumps(checked_streets,
+                              indent=4, sort_keys=True,
+                              separators=(',', ': '), ensure_ascii=False)
+            outfile.write(str(str_))
