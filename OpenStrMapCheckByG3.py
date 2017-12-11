@@ -187,6 +187,7 @@ import io
 import json
 import googlemaps
 from metaphone import doublemetaphone 
+STREETS_PATH = 'checked_streets.json'
 checked_streets = {}
 
 def get_route(address_components):
@@ -210,12 +211,12 @@ def ask_google(parent_node, street_tag, checked_routes):
 
     # Look up an address with reverse geocoding
     reverse_geocode_result = gmaps.reverse_geocode((parent_node['lat'], parent_node['lon']))# e.g.((40.714224, -73.961452))
-    # Google returns several address_components - a hierarchic structure: address, district, city
+    # Google returns several address_components - a hierarchic structure: [address, district, city, ..]
     for address_components in reverse_geocode_result:
-        # seek first route in Google response
+        # seek the first route in Google response
         google_street = get_route(address_components['address_components'])
         #print(google_street)
-        # route not found near this point, check next address_components
+        # route is not found near this point, check the next address_component
         if google_street == None: 
             #print('street {0} from {1} is not found'.format(street_tag['value'], parent_node['id']))
             continue
@@ -229,7 +230,7 @@ def ask_google(parent_node, street_tag, checked_routes):
             checked_routes[street_tag['value']] = google_street
             return google_street
     
-    # route not found near this point, this node in OpenStreet only
+    # route is not found near this point, this node is in OpenStreet only
     checked_routes[street_tag['value']] = ''
     return street_tag['value']
 
@@ -362,10 +363,10 @@ OSM_IN_FILE = "bonn.osm"  # Replace this with your osm file
 if __name__ == '__main__':
     # Note: Validation is ~ 10X slower. For the project consider using a small
     # sample of the map when validating.
-    process_map(OSM_IN_FILE, validate=True) # OSM_PATH OSM_OUT_FILE
+    process_map(OSM_PATH, validate=True) 
     if len(checked_streets)>0:
        # Write JSON file
-        with io.open('checked_streets.json', 'w', encoding='utf8') as outfile:
+        with io.open(STREETS_PATH, 'w', encoding='utf8') as outfile:
             str_ = json.dumps(checked_streets,
                               indent=4, sort_keys=True,
                               separators=(',', ': '), ensure_ascii=False)
