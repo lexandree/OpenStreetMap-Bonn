@@ -210,20 +210,20 @@ def ask_google(parent_node, street_tag, checked_routes):
 
     # Look up an address with reverse geocoding
     reverse_geocode_result = gmaps.reverse_geocode((parent_node['lat'], parent_node['lon']))# e.g.((40.714224, -73.961452))
-    # Google returns more address_components
+    # Google returns several address_components - a hierarchic structure: address, district, city
     for address_components in reverse_geocode_result:
         # seek first route in Google response
         google_street = get_route(address_components['address_components'])
-        print(google_street)
+        #print(google_street)
         # route not found near this point, check next address_components
         if google_street == None: 
-            #print('{0} not found in {1}'.format(street_tag['value'], parent_node['id']))
+            #print('street {0} from {1} is not found'.format(street_tag['value'], parent_node['id']))
             continue
         #the street is found by google and is conform 
         if street_tag['value'].lower().strip() == google_street.lower():
             checked_routes[street_tag['value']] = google_street
             return google_street
-        #the street is misspelled but sounds conform, doublemetaphone+'S' is because shortening Strasse->Str
+        #the street is misspelled but sounds conform, doublemetaphone+'S' is because shortening Straße->Str
         if doublemetaphone(street_tag['value'])[0] == doublemetaphone(google_street)[0] or \
             doublemetaphone(street_tag['value'])[0]+'S' == doublemetaphone(google_street)[0]:
             checked_routes[street_tag['value']] = google_street
